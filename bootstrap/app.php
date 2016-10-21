@@ -1,6 +1,43 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Register The Composer Auto Loader
+|--------------------------------------------------------------------------
+|
+| Composer provides a convenient, automatically generated class loader
+| for our application. We just need to utilize it! We'll require it
+| into the script here so that we do not have to worry about the
+| loading of any our classes "manually". Feels great to relax.
+|
+*/
+
 require_once __DIR__.'/../vendor/autoload.php';
+
+/*
+|--------------------------------------------------------------------------
+| Include The Compiled Class File
+|--------------------------------------------------------------------------
+|
+| To dramatically increase your application's performance, you may use a
+| compiled class file which contains all of the classes commonly used
+| by a request. The Artisan "optimize" is used to create this file.
+|
+*/
+
+$compiledPath = __DIR__.'/cache/compiled.php';
+
+if (file_exists($compiledPath)) {
+    require $compiledPath;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Load your environment file
+|--------------------------------------------------------------------------
+|
+| You know, to load your environment file.
+*/
 
 try {
     (new Dotenv\Dotenv(__DIR__.'/../'))->load();
@@ -25,8 +62,8 @@ $app = new Laravel\Lumen\Application(
 
 $app->withFacades();
 
-class_exists('JWTAuth') or class_alias(Tymon\JWTAuth\Facades\JWTAuth::class, 'JWTAuth');
-class_exists('JWTFactory') or class_alias(Tymon\JWTAuth\Facades\JWTFactory::class, 'JWTFactory');
+class_exists(JWTAuth::class) or class_alias(Tymon\JWTAuth\Facades\JWTAuth::class, JWTAuth::class);
+class_exists(JWTFactory::class) or class_alias(Tymon\JWTAuth\Facades\JWTFactory::class, JWTFactory::class);
 
 $app->withEloquent();
 
@@ -88,6 +125,7 @@ $app->routeMiddleware([
 |
 */
 
+// JWTAuth Dependency
 $app->configure('session');
 $app->register(Illuminate\Session\SessionServiceProvider::class);
 $app->register(Illuminate\Cookie\CookieServiceProvider::class);
@@ -99,7 +137,10 @@ $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
 // JWTAuth
+$app->configure('jwt');
 $app->register(Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class);
+
+$app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -113,7 +154,7 @@ $app->register(Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class);
 */
 
 $app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
-    require __DIR__.'/../app/Http/routes.php';
+    require __DIR__.'/../routes/api.php';
 });
 
 return $app;
